@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cute Quiz 💖</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  font-family:'Press Start 2P', cursive;
+  text-align:center;
+  overflow:hidden;
+}
+
+.screen{
+  display:none;
+  height:100vh;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+
+.active{display:flex;}
+
+button{
+  font-family:'Press Start 2P';
+  padding:12px;
+  margin:10px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.pink{background:#ffc0cb;}
+.purple{background:#d8b4f8;}
+.green{background:#b9fbc0;}
+.red{background:#ffadad;}
+
+.big{font-size:18px;}
+.small{font-size:10px;}
+
+.circle{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:white;
+  margin-top:20px;
+  cursor:pointer;
+}
+
+.explosion{
+  position:absolute;
+  width:200px;
+  height:200px;
+  background:radial-gradient(circle, white, transparent);
+  border-radius:50%;
+  animation:boom 0.5s forwards;
+}
+
+@keyframes boom{
+  from{transform:scale(0);}
+  to{transform:scale(5); opacity:0;}
+}
+
+.progress{
+  width:220px;
+  height:20px;
+  border:2px solid black;
+  margin-top:20px;
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:black;
+}
+
+img{
+  width:130px;
+  margin:15px;
+}
+
+/* hearts */
+@keyframes floatUp{
+  from{transform:translateY(0);}
+  to{transform:translateY(-800px); opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- START -->
+<div class="screen active pink" id="start">
+<div class="big">CLICK HERE</div>
+<div class="circle" onclick="explode()"></div>
+</div>
+
+<!-- READY -->
+<div class="screen purple" id="ready">
+<div class="big">ARE YOU READY?</div>
+<button onclick="startLoading()">YES</button>
+<button onclick="alert('YOU HAVE NO CHOICE 😼')">NO</button>
+</div>
+
+<!-- LOADING -->
+<div class="screen pink" id="loading">
+<div class="big">LOADING...</div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen pink" id="quiz"></div>
+
+<!-- RESULT -->
+<div class="screen" id="result"></div>
+
+<script>
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function explode(){
+  let boom=document.createElement('div');
+  boom.className='explosion';
+  document.body.appendChild(boom);
+  setTimeout(()=>{show('ready');},400);
+}
+
+function startLoading(){
+  show('loading');
+  let bar=document.getElementById('bar');
+  let width=0;
+
+  let int=setInterval(()=>{
+    width+=4;
+    bar.style.width=width+'%';
+
+    if(width>=100){
+      clearInterval(int);
+      startQuiz();
+    }
+  },100);
+}
+
+let questions=[
+{
+q:"WHEN DID WE MEET?",
+a:["2/3/2026","1/3/2026","6/3/2026"],
+correct:[0]
+},
+{
+q:"WHICH SONG REMINDS YOU OF ME?",
+a:["DIE WITH A SMILE","HAPPY DAY","SMILE AGAIN"],
+correct:[0]
+},
+{
+q:"WHEN IS MY BIRTHDAY?",
+a:["3/11/2010","4/11/2010","3/10/2010"],
+correct:[0]
+},
+{
+q:"WHAT DO WE BOTH LOVE? (CHOOSE 2)",
+a:["DRAWING","WATCHING CARTOONS","SPORTS"],
+correct:[0,1],
+multi:true
+},
+{
+q:"ARE YOU MINE?",
+a:["YES","NO"],
+correct:[0],
+specialMsg:true
+},
+{
+q:"DO YOU LOVE ME?",
+a:["YES","NO"],
+special:true
+}
+];
+
+let current=0;
+
+function startQuiz(){
+  show('quiz');
+  loadQuestion();
+}
+
+function loadQuestion(){
+  let q=questions[current];
+  let div=document.getElementById('quiz');
+  div.innerHTML=`<div class="big">${q.q}</div>`;
+
+  let selected=[];
+
+  q.a.forEach((text,i)=>{
+    let btn=document.createElement('button');
+    btn.innerText=text;
+
+    btn.onclick=()=>{
+
+      if(q.special){
+        if(i===0){
+          showFinal();
+        }
+        return;
+      }
+
+      if(q.specialMsg){
+        if(i===0){
+          alert("GOOD JOB 😼");
+          next();
+        }else{
+          showWrong();
+        }
+        return;
+      }
+
+      if(q.multi){
+        if(selected.includes(i)){
+          selected=selected.filter(x=>x!==i);
+          btn.style.background='';
+        }else{
+          selected.push(i);
+          btn.style.background='black';
+          btn.style.color='white';
+        }
+
+        if(selected.length===2){
+          checkAnswer(selected);
+        }
+
+      }else{
+        checkAnswer([i]);
+      }
+    }
+
+    div.appendChild(btn);
+  });
+}
+
+function checkAnswer(ans){
+  let q=questions[current];
+
+  if(JSON.stringify(ans.sort())===JSON.stringify(q.correct)){
+    showCorrect();
+  }else{
+    showWrong();
+  }
+}
+
+function showCorrect(){
+  let div=document.getElementById('result');
+  show('result');
+
+  div.className="screen green active";
+  div.innerHTML=`
+  <img src="https://media.tenor.com/2roX3uxz_68AAAAC/cute-cat.gif">
+  <div class="big">CORRECT!</div>
+  <button onclick="next()">NEXT</button>
+  `;
+}
+
+function showWrong(){
+  let div=document.getElementById('result');
+  show('result');
+
+  div.className="screen red active";
+  div.innerHTML=`
+  <img src="https://media.tenor.com/mZZoOtDcouoAAAAC/angry-cat.gif">
+  <div class="big">WRONG!!!</div>
+  <button onclick="retry()">TRY AGAIN</button>
+  `;
+}
+
+function next(){
+  current++;
+  show('quiz');
+  loadQuestion();
+}
+
+function retry(){
+  show('quiz');
+  loadQuestion();
+}
+
+function showFinal(){
+  showHearts();
+
+  setTimeout(()=>{
+    let div=document.getElementById('result');
+    show('result');
+    div.className="screen pink active";
+    div.innerHTML=`
+    <div class="big">I KNEW IT 😼</div>
+    <div class="small">YOU ARE OBSESSED WITH ME 💖</div>
+    <div class="small">I LOVE YOU TOO BB</div>
+    <br><br>
+    <div class="big">FISAL + MARY ♡</div>
+    `;
+  },1500);
+}
+
+function showHearts(){
+  for(let i=0;i<25;i++){
+    let heart=document.createElement('div');
+    heart.innerHTML="💖";
+    heart.style.position="absolute";
+    heart.style.left=Math.random()*100+"%";
+    heart.style.top="100%";
+    heart.style.fontSize="20px";
+    heart.style.animation="floatUp 2s linear forwards";
+    document.body.appendChild(heart);
+
+    setTimeout(()=>heart.remove(),2000);
+  }
+}
+
+</script>
+
+</body>
+</html>
