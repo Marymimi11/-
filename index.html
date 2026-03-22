@@ -317,6 +317,34 @@ function showHearts(){
     setTimeout(()=>heart.remove(),2000);
   }
 }
+  function explode(){
+  try {
+    ctx.resume();
+    beep();
+  } catch(e){}
+
+  let boom = document.createElement("div");
+  boom.style.position = "absolute";
+  boom.style.width = "150px";
+  boom.style.height = "150px";
+  boom.style.background = "white";
+  boom.style.borderRadius = "50%";
+  boom.style.top = "40%";
+  boom.style.left = "40%";
+  boom.style.opacity = "0.8";
+  boom.style.transition = "0.4s";
+  document.body.appendChild(boom);
+
+  setTimeout(()=>{
+    boom.style.transform = "scale(4)";
+    boom.style.opacity = "0";
+  },10);
+
+  setTimeout(()=>{
+    boom.remove();
+    show('ready');
+  },400);
+}
 
 </script>
 
